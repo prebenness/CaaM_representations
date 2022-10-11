@@ -1,0 +1,12 @@
+# Datasets and cached outputs
+0-NICO/data
+0-NICO/output
+
+1-Imagenet9/data
+1-Imagenet9/output
+
+# Python
+**/__pycache__
+
+# IDE
+.vscode

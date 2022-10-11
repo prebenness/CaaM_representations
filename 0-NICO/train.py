@@ -164,12 +164,9 @@ if __name__ == '__main__':
         print('Done.')
     get_parameter_number(net)
 
-
-
     # ============================================================================
     # DATA PREPROCESSING
-    if config['dataset'] is not 'Cifar':
-        # mean, std = get_mean_std(config['image_folder'])
+    if config['dataset'] != 'Cifar':
         mean, std = training_opt['mean'], training_opt['std']
     else:
         mean, std = settings.CIFAR100_TRAIN_MEAN, settings.CIFAR100_TRAIN_STD

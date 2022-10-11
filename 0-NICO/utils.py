@@ -13,6 +13,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 from torch import nn, optim, autograd
 from PIL import Image
+from progress.bar import Bar
 
 
 def get_network(args):
@@ -352,11 +353,13 @@ def load_NICO(dataroot, balance_factor=1, config=None):
     all_label = []
     all_context = []
 
+    bar = Bar('Loading NICO dataset', max=len(all_file_name), index=0)
     for file_name in all_file_name:
         label, context, index = file_name.split('_')
         all_label.append(label)
         all_context.append(context)
         all_data.append(Image.open(os.path.join(dataroot, file_name)).convert('RGB'))
+        bar.next()
 
     label_set = list(set(all_label))
     label2train = {label_set[i]: i for i in range(len(label_set))}
