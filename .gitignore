@@ -5,6 +5,9 @@
 1-Imagenet9/data
 1-Imagenet9/output
 
+2-StandardDatasets/data
+2-StandardDatasets/output
+
 # Python
 **/__pycache__
 
