@@ -1,11 +1,11 @@
-exp_name: resnet18_ours_mnist
+exp_name: resnet18_ours_cifar10
 net: resnet18_ours_cbam_multi
 #image_folder: /data2/wangtan/causal-invariant-attention/dataset/NICO/multi_classification
 #cxt_dic_path: /data2/wangtan/causal-invariant-attention/dataset/NICO/label_file/Context_name2label.json
 #class_dic_path: /data2/wangtan/causal-invariant-attention/dataset/NICO/label_file/Animal_name2label.json
 dataset: CIFAR10
-train_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb_debug/train
-val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb_debug/val
+train_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb/train
+val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb/val
 #imageneta_root: /disk2/wangtan/dataset/ImageNet/imagenet_a/imagenet-a
 training_opt:
   seed: 0
@@ -26,8 +26,8 @@ variance_opt:
   erm_flag: True
   sp_flag: False
   n_env: 5
-  env_type: 'random'
-  #env_type: 'auto-iter'
+  #env_type: 'random'
+  env_type: 'auto-iter'
   split_renew: 40
   split_renew_iters: 10
   from_scratch: False

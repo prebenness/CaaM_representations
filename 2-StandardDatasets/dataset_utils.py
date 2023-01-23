@@ -234,7 +234,7 @@ class ImageFolder_env(torch.utils.data.Dataset):
 
 
 
-def get_imagenet_dataloader(root, batch_size, train=True, num_workers=8, val_data='ImageNet'):
+def get_generic_dataloader(root, batch_size, train=True, num_workers=8, val_data='ImageNet'):
     if train:
         transform = transforms.Compose([
             transforms.RandomResizedCrop(cfg.img_shape[-1]),

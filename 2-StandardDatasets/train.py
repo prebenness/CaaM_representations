@@ -26,7 +26,7 @@ from utils import get_network, get_test_dataloader, get_val_dataloader, WarmUpLR
 from train_module import train_env_ours, auto_split, refine_split, update_pre_optimizer, update_bias_optimizer, auto_cluster
 from eval_module import eval_training, eval_best, eval_mode, evaluate_rebias
 from timm.scheduler import create_scheduler
-from dataset_utils import get_imagenet_dataloader, get_imagenet_dataloader_env, get_pre_dataloader, get_bias_dataloader
+from dataset_utils import get_generic_dataloader, get_imagenet_dataloader_env, get_pre_dataloader, get_bias_dataloader
 
 
 
@@ -100,7 +100,12 @@ if __name__ == '__main__':
     # args.debug = False
     training_opt = config['training_opt']
     variance_opt = config['variance_opt']
-    exp_name = args.name if args.name is not None else config['exp_name']
+    exp_name = args.name or config['exp_name']
+
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    out_dir = os.path.join('results', f'{timestamp}_{exp_name}')
+    os.makedirs(out_dir, exist_ok=True)
+    cfg.out_dir = out_dir
 
     cfg.network_type = config['dataset']
     if config['dataset'] == 'MNIST':
@@ -158,7 +163,7 @@ if __name__ == '__main__':
     # ============================================================================
     # DATA PREPROCESSING
 
-    train_loader_init = get_imagenet_dataloader(
+    train_loader_init = get_generic_dataloader(
         config['train_root'], batch_size=training_opt['batch_size'],
         train=True, val_data='NOT_IMAGENET'
     )
@@ -205,15 +210,17 @@ if __name__ == '__main__':
 
 
     val_loaders = {}
-    val_loaders['biased'] = get_imagenet_dataloader(
-        config['val_root'], batch_size=training_opt['val_batch_size'], train=False
+    val_loaders['biased'] = get_generic_dataloader(
+        config['val_root'], batch_size=training_opt['val_batch_size'],
+        train=False, val_data='NOT_IMAGENET',
     )
-    val_loaders['unbiased'] = get_imagenet_dataloader(
-        config['val_root'], batch_size=training_opt['val_batch_size'], train=False
+    val_loaders['unbiased'] = get_generic_dataloader(
+        config['val_root'], batch_size=training_opt['val_batch_size'],
+        train=False, val_data='NOT_IMAGENET',
     )
-    val_loaders['imagenet-a'] = get_imagenet_dataloader(
-        config['val_root'], batch_size=training_opt['val_batch_size'], train=False,
-        val_data='NOT_IMAGENET_A'
+    val_loaders['imagenet-a'] = get_generic_dataloader(
+        config['val_root'], batch_size=training_opt['val_batch_size'],
+        train=False, val_data='NOT_IMAGENET_A'
     )
 
     loss_function = nn.CrossEntropyLoss()
@@ -265,21 +272,21 @@ if __name__ == '__main__':
 
 
     if config['resume']:
-        recent_folder = most_recent_folder(os.path.join(settings.CHECKPOINT_PATH, args.net), fmt=settings.DATE_FORMAT)
+        recent_folder = most_recent_folder(os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net), fmt=settings.DATE_FORMAT)
         if not recent_folder:
             raise Exception('no recent folder were found')
-        checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder)
+        checkpoint_path = os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder)
 
     else:
-        checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, exp_name)
+        checkpoint_path = os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, exp_name)
 
     if args.debug:
         checkpoint_path = os.path.join(checkpoint_path, 'debug')
 
     #use tensorboard
-    if not os.path.exists(settings.LOG_DIR):
-        os.mkdir(settings.LOG_DIR)
-    writer = SummaryWriter(log_dir=os.path.join(settings.LOG_DIR, args.net, exp_name))
+    log_dir = os.path.join(cfg.out_dir, 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    writer = SummaryWriter(log_dir=os.path.join(log_dir, exp_name))
 
 
     #create checkpoint folder to save model
@@ -287,39 +294,40 @@ if __name__ == '__main__':
         os.makedirs(checkpoint_path)
     checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 
-    best_acc = 0.
     best_epoch = 0
-    best_train_acc = 0.
-    best_acc_imageneta = 0.
+    best_acc = float('-inf')
+    best_train_acc = float('-inf')
+    best_acc_imageneta = float('-inf')
     if 'pretrain' in config and config['pretrain'] is not None:
         state_dict = torch.load(config['pretrain'])
         net.load_state_dict(state_dict, strict=False)
         print('Loaded pretrained model...')
     if config['resume']:
-        best_weights = best_acc_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+        best_weights = best_acc_weights(os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder))
         if best_weights:
-            weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, best_weights)
+            weights_path = os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder, best_weights)
             print('found best acc weights file:{}'.format(weights_path))
             print('load best training file to test acc...')
             net.load_state_dict(torch.load(weights_path))
             best_acc = eval_training(tb=False)
             print('best acc is {:0.2f}'.format(best_acc))
 
-        recent_weights_file = most_recent_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+        recent_weights_file = most_recent_weights(os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder))
         if not recent_weights_file:
             raise Exception('no recent weights file were found')
-        weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, recent_weights_file)
+        weights_path = os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder, recent_weights_file)
         print('loading weights file {} to resume training.....'.format(weights_path))
         net.load_state_dict(torch.load(weights_path))
 
-        resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+        resume_epoch = last_epoch(os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder))
 
     if args.eval is not None:
         scores = eval_mode(config, net, val_loaders, args.eval)
         print(scores)
         exit()
 
-    for epoch in range(1, training_opt['epoch']):
+    num_epochs = 1 if args.debug else training_opt['epoch']
+    for epoch in range(1, num_epochs + 1):
         if 't2tvit' in args.net and training_opt['optim']['sched']=='cosine':
             lr_scheduler.step(epoch)
         else:
@@ -366,35 +374,40 @@ if __name__ == '__main__':
 
 
         scores = {}
-        for key, val_loader in val_loaders.items():
-            scores[key] = evaluate_rebias(val_loader, net, config, num_classes=9, key=key)
+        scores['biased'] =  evaluate_rebias(
+            val_loaders['biased'], net, config, num_classes=cfg.num_classes, key='biased'
+        )
+        """ for key, val_loader in val_loaders.items():
+            scores[key] = evaluate_rebias(val_loader, net, config, num_classes=cfg.num_classes, key=key) """
         acc = scores['biased']['f_acc']
-        acc_imageneta = scores['imagenet-a']['f_acc']
+        #acc_imageneta = scores['imagenet-a']['f_acc']
 
 
-        if best_acc < acc:
+        if acc > best_acc:
             # torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
             save_model(net, checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
             best_acc = acc
             best_epoch = epoch
             best_train_acc  = train_acc
 
-        if best_acc_imageneta < acc_imageneta:
-            best_acc_imageneta = acc_imageneta
+        """ if best_acc_imageneta < acc_imageneta:
+            best_acc_imageneta = acc_imageneta """
 
         if not epoch % training_opt['save_epoch']:
             # torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='regular'))
             save_model(net, checkpoint_path.format(net=args.net, epoch=epoch, type='regular'))
 
         print("Best Acc: %.4f \t Train Acc: %.4f \t Best Epoch: %d" %(best_acc, best_train_acc, best_epoch))
-        print("All the scores: ")
-        print("Biased: %.4f \t UnBiased: %.4f \t ImagenetA: %.4f \t ImagenetA_Best: %.4f" %(scores['biased']['f_acc'],scores['unbiased']['f_acc'],scores['imagenet-a']['f_acc'], best_acc_imageneta))
+        #print("All the scores: ")
+        #print("Biased: %.4f \t UnBiased: %.4f \t ImagenetA: %.4f \t ImagenetA_Best: %.4f" %(scores['biased']['f_acc'],scores['unbiased']['f_acc'],scores['imagenet-a']['f_acc'], best_acc_imageneta))
 
 
     print('Evaluate Best Epoch %d ...' %(best_epoch))
-    scores = eval_best(config, args, net, val_loaders, loss_function ,checkpoint_path, best_epoch)
+    scores = eval_best(config, args, net, val_loaders, loss_function, checkpoint_path, best_epoch)
     print(scores)
-    txt_write = open("results_txt/" + exp_name + '.txt', 'w')
+    txt_out_dir = os.path.join(cfg.out_dir, 'results')
+    os.makedirs(txt_out_dir, exist_ok=True)
+    txt_write = open(os.path.join(txt_out_dir, f'{exp_name}.txt'), 'w')
     txt_write.write(str(best_train_acc)+'\n')
     txt_write.write(str(best_acc)+'\n')
     txt_write.write(str(scores)+'\n')

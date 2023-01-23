@@ -7,6 +7,7 @@ import numpy as np
 import random
 import time
 from utils import Acc_Per_Context, Acc_Per_Context_Class, cal_acc, save_model, load_model
+from conf import global_config as cfg
 
 
 @torch.no_grad()
@@ -171,22 +172,23 @@ def evaluate_rebias(dataloader, net, config,
 @torch.no_grad()
 def eval_best(config, args, net, test_loader, loss_function ,checkpoint_path, best_epoch):
 
-    try:
-        load_model(net, checkpoint_path.format(net=args.net, epoch=best_epoch, type='best'))
-        # net.load_state_dict(torch.load(checkpoint_path.format(net=args.net, epoch=best_epoch, type='best')))
-    except:
-        print('no best checkpoint')
-        load_model(net, checkpoint_path.format(net=args.net, epoch=180, type='regular'))
-        # net.load_state_dict(torch.load(checkpoint_path.format(net=args.net, epoch=180, type='regular')))
+    load_model(net, checkpoint_path.format(net=args.net, epoch=best_epoch, type='best'))
+
     if isinstance(net, list):
         for net_ in net:
             net_.eval()
     else:
         net.eval()
 
+
     scores = {}
+    scores['biased'] = evaluate_rebias(
+        test_loader['biased'], net, config, num_classes=cfg.num_classes, key='biased'
+    )
+
+    """ scores = {}
     for key, val_loader in test_loader.items():
-        scores[key] = evaluate_rebias(val_loader, net, config, num_classes=9, key=key)
+        scores[key] = evaluate_rebias(val_loader, net, config, num_classes=cfg.num_classes, key=key) """
 
     return scores
 
