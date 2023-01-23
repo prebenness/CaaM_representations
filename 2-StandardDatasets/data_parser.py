@@ -1,19 +1,29 @@
 #### Shitty hack to get around the abhorrent dataset format used
 
 import os
+import argparse
 
 import torch
 import torchvision
 
 
-def main():
+def main(dataset, debug=False):
     # Config
-    name, num_classes, make_debug_set = 'mnist', 10, False
+    #dataset, num_classes, debug = 'cifar100', 100, False
 
-    output_dir = os.path.join('data', f'{name}_dumb{"_debug" if make_debug_set else ""}')
+    if dataset == 'mnist':
+        num_classes = 10
+    elif dataset == 'cifar10':
+        num_classes = 10
+    elif dataset == 'cifar100':
+        num_classes = 100
+    else:
+        raise NotImplementedError(f'Dataset {dataset} not supported')
+
+    output_dir = os.path.join('data', f'{dataset}_dumb{"_debug" if debug else ""}')
     os.makedirs(output_dir, exist_ok=True)
 
-    train_loader, val_loader, test_loader = make_dataloaders(name)
+    train_loader, val_loader, test_loader = make_dataloaders(dataset)
     split_name2loader = {
         'train': train_loader,
         'val': val_loader,
@@ -39,7 +49,7 @@ def main():
         count = 0           # Need some way of giving unique filenames
         batch_count = 1     # Progress tracking for sanity
 
-        if make_debug_set:
+        if debug:
             classes_stored = { idx: False for idx in range(num_classes) }
 
         for x_batch, y_batch in loader:
@@ -50,7 +60,7 @@ def main():
                 file_path = os.path.join(class_paths[class_idx], f'image_{count}.JPEG')
 
                 # For debug sets, only store one sample per class
-                if make_debug_set:
+                if debug:
                     if not classes_stored[class_idx]:
                         torchvision.utils.save_image(x, file_path, format='JPEG')
                         classes_stored[class_idx] = True
@@ -62,7 +72,7 @@ def main():
                 else:
                     torchvision.utils.save_image(x, file_path, format='JPEG')
             
-            if make_debug_set and debug_split_done:
+            if debug and debug_split_done:
                 break
 
             print(f'Parsed batch {batch_count} of {len(loader)}')
@@ -108,4 +118,10 @@ def make_dataloaders(name):
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser('Data parsing script')
+    parser.add_argument('--dataset', type=str, required=True)
+    parser.add_argument('--debug', action='store_true')
+    
+    args = parser.parse_args()
+
+    main(args.dataset, args.debug)
