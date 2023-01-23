@@ -10,8 +10,8 @@ val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/dat
 training_opt:
   seed: 0
   classes: 100
-  batch_size: 10
-  val_batch_size: 10
+  batch_size: 128
+  val_batch_size: 128
   lr: 0.1
   warm: 2
   epoch: 120
