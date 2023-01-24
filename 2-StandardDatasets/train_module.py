@@ -5,7 +5,7 @@ from torch.autograd import Variable
 from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 import time
 from sklearn.cluster import KMeans
-from utils import get_network, get_test_dataloader, WarmUpLR, \
+from utils import get_network, get_dataloader, WarmUpLR, \
     most_recent_folder, most_recent_weights, last_epoch, best_acc_weights, update, get_mean_std, \
     Acc_Per_Context, Acc_Per_Context_Class, penalty, cal_acc, get_custom_network
 

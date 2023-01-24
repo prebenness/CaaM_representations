@@ -25,7 +25,7 @@ variance_opt:
   mode: 'ours'
   erm_flag: True
   sp_flag: False
-  n_env: 5
+  n_env: 4
   #env_type: 'random'
   env_type: 'auto-iter'
   split_renew: 40

@@ -32,6 +32,7 @@ If you find our codes helpful, please cite our paper:
 ### 2.5 MNIST / CIFAR
 1) run data_parser.py for all three datasets
 2) train with relevant config file
+3) run representations.py with path to trained model (ensure n_env and other settings match between training and script)
 
 ### 2. Evaluation:
 

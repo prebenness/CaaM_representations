@@ -20,7 +20,7 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 # torch.autograd.set_detect_anomaly(True)
 from conf import settings, global_config as cfg
-from utils import get_network, get_test_dataloader, get_val_dataloader, WarmUpLR, most_recent_folder, most_recent_weights, last_epoch, best_acc_weights, \
+from utils import get_network, get_dataloader, get_val_dataloader, WarmUpLR, most_recent_folder, most_recent_weights, last_epoch, best_acc_weights, \
     update, get_mean_std, Acc_Per_Context, Acc_Per_Context_Class, penalty, cal_acc, get_custom_network, get_custom_network_vit, \
     save_model, load_model, get_parameter_number, init_training_dataloader
 from train_module import train_env_ours, auto_split, refine_split, update_pre_optimizer, update_bias_optimizer, auto_cluster

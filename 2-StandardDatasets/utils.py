@@ -535,7 +535,7 @@ class init_training_dataloader():
 
 
 
-def get_test_dataloader(config, mean, std, batch_size=16, num_workers=2, shuffle=False):
+def get_dataloader(config, mean, std, train=True, batch_size=16, num_workers=2, shuffle=False):
     """ return training dataloader
     Args:
         mean: mean of cifar100 test dataset
@@ -547,25 +547,26 @@ def get_test_dataloader(config, mean, std, batch_size=16, num_workers=2, shuffle
     Returns: cifar100_test_loader:torch dataloader object
     """
 
-    if config['dataset'] == "Cifar":
-        transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-        #cifar100_test = CIFAR100Test(path, transform=transform_test)
-        testing_dataset = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std)
+    ])
 
-    elif config['dataset'] == "NICO":
-        transform_test = transforms.Compose([
-            transforms.Resize([224, 224]),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-        image, label, context = load_NICO(os.path.join(config['image_folder'], 'test'), config=config)
-        testing_dataset = NICO_dataset(image, label, context, transform_test, require_context=True)
+    if config['dataset'] == "cifar10":
+        Dataset = torchvision.datasets.CIFAR10
+    elif config['dataset'] == 'cifar100':
+        Dataset = torchvision.datasets.CIFAR100
+    elif config['dataset'] == 'mnist':
+        Dataset == torchvision.datasets.MNIST
+
+    testing_dataset = Dataset(
+        root='./data', train=train, download=True, transform=transform_test
+    )
 
     testing_loader = DataLoader(
-            testing_dataset, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
+        testing_dataset, shuffle=shuffle, num_workers=num_workers,
+        batch_size=batch_size
+    )
 
     return testing_loader
 
