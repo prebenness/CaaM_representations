@@ -209,7 +209,7 @@ def auto_split(ref_model, pre_train_loader, pre_optimizer, pre_schedule, soft_sp
             '''
             # Option 2. use gumbel-softmax
             split_logits = F.log_softmax(soft_split_all, dim=-1)
-            hard_split_all = F.gumbel_softmax(split_logits, tau=1, hard=True)
+            hard_split_all = F.gumbel_softmax(split_logits, tau=1, hard=True).to(penalty.device)
             hard_split = hard_split_all[idx]
             penalty = (hard_split * penalty.unsqueeze(-1) / (hard_split.sum(0)+1e-20)).sum(0)
             erm_risk = (hard_split * loss_value.unsqueeze(-1) / (hard_split.sum(0)+1e-20)).sum(0)
