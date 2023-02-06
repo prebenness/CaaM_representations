@@ -12,7 +12,7 @@ from models.resnet_ours_cbam_multi import ResidualNet, classifier
 from conf import settings, global_config as cfg
 
 def get_model_list():
-    num_env = 5
+    num_env = 4
     split_layer = 3
 
     model_list = []
