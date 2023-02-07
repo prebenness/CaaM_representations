@@ -7,6 +7,8 @@
 
 2-StandardDatasets/data
 2-StandardDatasets/results
+2-StandardDatasets/logs
+2-StandardDatasets/sbatch_scripts
 
 # Python
 **/__pycache__
