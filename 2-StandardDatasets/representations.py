@@ -10,15 +10,15 @@ from progress.bar import Bar
 from utils import get_dataloader
 from models.resnet_ours_cbam_multi import ResidualNet, classifier
 from conf import settings, global_config as cfg
+from dataset_utils import get_generic_dataloader
 
 def get_model_list():
-    num_env = 5
+    num_env = 4
     split_layer = 3
 
     model_list = []
-    for e in range(num_env):
-        if (e <= num_env):
-            model_list.append(classifier(num_classes=cfg.num_classes, bias=False))
+    for _ in range(num_env):
+        model_list.append(classifier(num_classes=cfg.num_classes, bias=False))
 
     model_list.append(classifier(num_classes=cfg.num_classes))
     model_list.append(
@@ -60,6 +60,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser('Compute representations of causal and correlational signals')
     parser.add_argument('--dataset', choices=['mnist', 'cifar10', 'cifar100'], required=True)
+    parser.add_argument('--data_root', required=True)
     parser.add_argument('--trained_model', type=str, required=True)
 
     args = parser.parse_args()
@@ -91,15 +92,26 @@ if __name__ == '__main__':
 
     # Load dataset
     print('Loading test split')
-    test_loader = get_dataloader(
+    
+    
+    train_loader = get_generic_dataloader(
+        os.path.join(args.data_root, 'train'), batch_size=128,
+        train=True, val_data='NOT_IMAGENET'
+    )
+    test_loader = get_generic_dataloader(
+        os.path.join(args.data_root, 'test'), batch_size=128,
+        train=False, val_data='NOT_IMAGENET'
+    )
+
+    """ test_loader = get_dataloader(
         config={'dataset': args.dataset}, mean=cfg.mean, std=cfg.std, 
-        num_workers=8, batch_size=128, train=False,
+        num_workers=1, batch_size=128, train=False,
     )
 
     train_loader = get_dataloader(
         config={'dataset': args.dataset}, mean=cfg.mean, std=cfg.std, 
-        num_workers=8, batch_size=128, train=True,
-    )
+        num_workers=1, batch_size=128, train=True,
+    ) """
 
     # Forward pass over all data to compute representations
     print('Starting representations computation')
@@ -111,7 +123,7 @@ if __name__ == '__main__':
             
             print(f'Split: {split_name}')
             bar = Bar('Processing', max=len(loader), index=0)
-            for (x, _) in loader:
+            for (x, _, _) in loader:
                 x = x.cuda()
 
                 # Estimate causal and spurious signals
@@ -138,4 +150,4 @@ if __name__ == '__main__':
             np.savez(os.path.join(outpath, f'images_{split_name}.npz'), images)
             np.savez(os.path.join(outpath, f'style_{split_name}.npz'), style)
 
-    print('Representations computed and stored under {outpath}')
+    print(f'Representations computed and stored under {outpath}')

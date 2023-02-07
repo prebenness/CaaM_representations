@@ -557,7 +557,7 @@ def get_dataloader(config, mean, std, train=True, batch_size=16, num_workers=2, 
     elif config['dataset'] == 'cifar100':
         Dataset = torchvision.datasets.CIFAR100
     elif config['dataset'] == 'mnist':
-        Dataset == torchvision.datasets.MNIST
+        Dataset = torchvision.datasets.MNIST
 
     testing_dataset = Dataset(
         root='./data', train=train, download=True, transform=transform_test
