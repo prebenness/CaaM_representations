@@ -4,10 +4,8 @@ import argparse
 
 import torch
 import numpy as np
-import yaml
 from progress.bar import Bar
 
-from utils import get_dataloader
 from models.resnet_ours_cbam_multi import ResidualNet, classifier
 from conf import settings, global_config as cfg
 from dataset_utils import get_generic_dataloader
@@ -89,11 +87,8 @@ if __name__ == '__main__':
     # Use GPU and set to train mode to False
     model.cuda()
     model.eval()
-
+    
     # Load dataset
-    print('Loading test split')
-    
-    
     train_loader = get_generic_dataloader(
         os.path.join(args.data_root, 'train'), batch_size=128,
         train=True, val_data='NOT_IMAGENET'
@@ -103,16 +98,6 @@ if __name__ == '__main__':
         train=False, val_data='NOT_IMAGENET'
     )
 
-    """ test_loader = get_dataloader(
-        config={'dataset': args.dataset}, mean=cfg.mean, std=cfg.std, 
-        num_workers=1, batch_size=128, train=False,
-    )
-
-    train_loader = get_dataloader(
-        config={'dataset': args.dataset}, mean=cfg.mean, std=cfg.std, 
-        num_workers=1, batch_size=128, train=True,
-    ) """
-
     # Forward pass over all data to compute representations
     print('Starting representations computation')
     split_name2loader = { 'train': train_loader, 'test':test_loader }
@@ -120,7 +105,7 @@ if __name__ == '__main__':
     with torch.no_grad():
         for split_name, loader in split_name2loader.items():
             images, style, content = [], [], []
-            
+
             print(f'Split: {split_name}')
             bar = Bar('Processing', max=len(loader), index=0)
             for (x, _, _) in loader:
