@@ -6,6 +6,7 @@ dataset: CIFAR100
 #class_dic_path: /data2/wangtan/causal-invariant-attention/dataset/NICO/label_file/Animal_name2label.json
 train_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar100_dumb/train
 val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar100_dumb/val
+test_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar100_dumb/test
 #imageneta_root: /disk2/wangtan/dataset/ImageNet/imagenet_a/imagenet-a
 training_opt:
   seed: 0

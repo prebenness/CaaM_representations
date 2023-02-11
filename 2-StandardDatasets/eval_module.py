@@ -181,16 +181,9 @@ def eval_best(config, args, net, test_loader, loss_function ,checkpoint_path, be
         net.eval()
 
 
-    scores = {}
-    scores['biased'] = evaluate_rebias(
-        test_loader['biased'], net, config, num_classes=cfg.num_classes, key='biased'
+    return evaluate_rebias(
+        test_loader, net, config, num_classes=cfg.num_classes, key='biased'
     )
-
-    """ scores = {}
-    for key, val_loader in test_loader.items():
-        scores[key] = evaluate_rebias(val_loader, net, config, num_classes=cfg.num_classes, key=key) """
-
-    return scores
 
 
 @torch.no_grad()

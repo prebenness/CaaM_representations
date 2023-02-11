@@ -60,30 +60,27 @@ if __name__ == '__main__':
         raise ValueError(f'Dataset {args.dataset} is not supported')
 
     
-    # Load pretrained model
-    nets = load_pretrained(args.trained_model)    
-    model = CaaMWrapper(nets)
-
-    
     # Load dataset
     test_loader = get_generic_dataloader(
         os.path.join(args.data_root, 'test'), batch_size=128,
         train=False, val_data='NOT_IMAGENET'
     )
-
-    # Init adv attacks
-    attack = torchattacks.PGD(model, eps=8/255, alpha=1/255, steps=10, random_start=True)
-    attack.set_normalization_used(mean=cfg.mean, std=cfg.std)
     
     num_corr, num_corr_adv, num_tot = 0, 0, 0
     for (x, y, _) in test_loader:
         x = x.to(cfg.device)
         y = y.to(cfg.device)
 
+        # Load pretrained model
+        nets = load_pretrained(args.trained_model)    
+        model = CaaMWrapper(nets)
+
         # Get clean test preds
         y_pred = model(x)
         
         # Craft adversarial samples
+        attack = torchattacks.PGD(model, eps=8/255, alpha=1/255, steps=10, random_start=True)
+        attack.set_normalization_used(mean=cfg.mean, std=cfg.std)
         x_adv = attack(x, y)
         y_pred_adv = model(x_adv)
 
@@ -98,6 +95,7 @@ if __name__ == '__main__':
     adv_acc = num_corr_adv / num_tot
 
     res_text = f'Test completed: Clean acc: {clean_acc} Adv acc: {adv_acc}'
+
     model_dir, model_file = os.path.split(args.trained_model)
     log_file_name = '.'.join([ model_file.split('.')[0], 'txt' ])
     with open(os.path.join(model_dir, log_file_name), 'w') as w:

@@ -6,6 +6,7 @@ net: resnet18_ours_cbam_multi
 dataset: CIFAR10
 train_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb/train
 val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb/val
+test_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/cifar10_dumb/test
 #imageneta_root: /disk2/wangtan/dataset/ImageNet/imagenet_a/imagenet-a
 training_opt:
   seed: 0

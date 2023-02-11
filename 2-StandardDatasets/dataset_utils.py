@@ -250,14 +250,31 @@ def get_generic_dataloader(root, batch_size, train=True, num_workers=8, val_data
             transforms.Normalize(mean=cfg.mean, std=cfg.std)])
 
     dataset = ImageFolder(root, transform=transform, train=train, val_data=val_data)
-    dataloader = torch.utils.data.DataLoader(dataset=dataset,
-                                         batch_size=batch_size,
-                                         shuffle=train,
-                                         num_workers=num_workers,
-                                         pin_memory=True)
+    
+    if not train:
+        dataloader = torch.utils.data.DataLoader(dataset=dataset,
+                                            batch_size=batch_size,
+                                            shuffle=train,
+                                            num_workers=num_workers,
+                                            pin_memory=True)
 
-    return dataloader
-
+    
+        return dataloader
+    
+    else:
+        train_dataset, val_dataset = torch.utils.data.random_split(dataset, [4/5, 1/5])
+        train_dataloader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                            batch_size=batch_size,
+                                            shuffle=train,
+                                            num_workers=num_workers,
+                                            pin_memory=True)
+        val_dataloader = torch.utils.data.DataLoader(dataset=val_dataset,
+                                            batch_size=batch_size,
+                                            shuffle=train,
+                                            num_workers=num_workers,
+                                            pin_memory=True)
+        
+        return train_dataloader, val_dataloader
 
 """ def get_common_dataloader(name, conf, train=True):
     if name == 'mnist':

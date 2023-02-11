@@ -163,7 +163,7 @@ if __name__ == '__main__':
     # ============================================================================
     # DATA PREPROCESSING
 
-    train_loader_init = get_generic_dataloader(
+    train_loader_init, val_loader_init = get_generic_dataloader(
         config['train_root'], batch_size=training_opt['batch_size'],
         train=True, val_data='NOT_IMAGENET'
     )
@@ -209,18 +209,13 @@ if __name__ == '__main__':
         train_loader = train_loader_init
 
 
-    val_loaders = {}
-    val_loaders['biased'] = get_generic_dataloader(
+    val_loader = get_generic_dataloader(
         config['val_root'], batch_size=training_opt['val_batch_size'],
         train=False, val_data='NOT_IMAGENET',
     )
-    val_loaders['unbiased'] = get_generic_dataloader(
-        config['val_root'], batch_size=training_opt['val_batch_size'],
+    test_loader = get_generic_dataloader(
+        config['test_root'], batch_size=training_opt['val_batch_size'],
         train=False, val_data='NOT_IMAGENET',
-    )
-    val_loaders['imagenet-a'] = get_generic_dataloader(
-        config['val_root'], batch_size=training_opt['val_batch_size'],
-        train=False, val_data='NOT_IMAGENET_A'
     )
 
     loss_function = nn.CrossEntropyLoss()
@@ -295,9 +290,9 @@ if __name__ == '__main__':
     checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 
     best_epoch = 0
-    best_acc = float('-inf')
-    best_train_acc = float('-inf')
-    best_acc_imageneta = float('-inf')
+    best_val_acc = 0.0
+    best_train_acc = 0.0
+
     if 'pretrain' in config and config['pretrain'] is not None:
         state_dict = torch.load(config['pretrain'])
         net.load_state_dict(state_dict, strict=False)
@@ -322,7 +317,7 @@ if __name__ == '__main__':
         resume_epoch = last_epoch(os.path.join(os.path.join(cfg.out_dir, 'checkpoints'), args.net, recent_folder))
 
     if args.eval is not None:
-        scores = eval_mode(config, net, val_loaders, args.eval)
+        scores = eval_mode(config, net, val_loader, args.eval)
         print(scores)
         exit()
 
@@ -372,45 +367,28 @@ if __name__ == '__main__':
         else:
             train_acc = train(epoch)
 
-
-        scores = {}
-        scores['biased'] =  evaluate_rebias(
-            val_loaders['biased'], net, config, num_classes=cfg.num_classes, key='biased'
-        )
-        """ for key, val_loader in val_loaders.items():
-            scores[key] = evaluate_rebias(val_loader, net, config, num_classes=cfg.num_classes, key=key) """
-        acc = scores['biased']['f_acc']
-        #acc_imageneta = scores['imagenet-a']['f_acc']
-
-
-        if acc > best_acc:
+        val_acc = evaluate_rebias(val_loader, net, config, num_classes=cfg.num_classes, key='biased')['f_acc']
+        if val_acc > best_val_acc:
             # torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
             save_model(net, checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
-            best_acc = acc
+            best_acc = val_acc
             best_epoch = epoch
             best_train_acc  = train_acc
 
-        """ if best_acc_imageneta < acc_imageneta:
-            best_acc_imageneta = acc_imageneta """
-
         if not epoch % training_opt['save_epoch']:
-            # torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='regular'))
             save_model(net, checkpoint_path.format(net=args.net, epoch=epoch, type='regular'))
 
         print("Best Acc: %.4f \t Train Acc: %.4f \t Best Epoch: %d" %(best_acc, best_train_acc, best_epoch))
-        #print("All the scores: ")
-        #print("Biased: %.4f \t UnBiased: %.4f \t ImagenetA: %.4f \t ImagenetA_Best: %.4f" %(scores['biased']['f_acc'],scores['unbiased']['f_acc'],scores['imagenet-a']['f_acc'], best_acc_imageneta))
 
 
-    print('Evaluate Best Epoch %d ...' %(best_epoch))
-    scores = eval_best(config, args, net, val_loaders, loss_function, checkpoint_path, best_epoch)
+    print('Evaluate Best Epoch %d on test set ...' %(best_epoch))
+    scores = eval_best(config, args, net, test_loader, loss_function, checkpoint_path, best_epoch)
     print(scores)
     txt_out_dir = os.path.join(cfg.out_dir, 'results')
     os.makedirs(txt_out_dir, exist_ok=True)
     txt_write = open(os.path.join(txt_out_dir, f'{exp_name}.txt'), 'w')
     txt_write.write(f'Best train acc: {best_train_acc}\n')
     txt_write.write(f'Best val acc: {best_acc}\n')
-    txt_write.write(f'Scores: {scores}\n')
-    txt_write.write(f'Imageneta-best: {best_acc_imageneta}')
+    txt_write.write(f'Test scores: {scores}\n')
     txt_write.close()
     writer.close()

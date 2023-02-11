@@ -49,8 +49,6 @@ def load_pretrained(path):
         #net.load_state_dict(updated_state_dict)
         net.load_state_dict(state_dict_dict[idx])
 
-    print('Loaded pretrained model...')
-
     return nets
 
 
