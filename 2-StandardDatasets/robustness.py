@@ -19,7 +19,7 @@ class CaaMWrapper(torch.nn.Module):
 
         # Linear classifiers
         self.linears = nets[:-1]
-        self.linear_w = torch.stack([net.fc.weight for net in self.linears], 0).mean(0)
+        self.linear_w = torch.stack([net.fc.weight for net in self.linears], 0).mean(0).to(cfg.device)
 
         # Image embedder
         self.embedder = nets[-1]
@@ -48,8 +48,8 @@ def test_robustness(model_path, attack_factory, test_loader):
         y = y.to(cfg.device)
 
         # Load pretrained model
-        nets = load_pretrained(model_path)    
-        model = CaaMWrapper(nets)
+        nets = load_pretrained(model_path)
+        model = CaaMWrapper(nets).to(cfg.device)
 
         # Get clean test preds
         y_pred = model(x)
