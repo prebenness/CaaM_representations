@@ -91,15 +91,15 @@ def main():
     if args.dataset == 'mnist':
         cfg.mean, cfg.std = settings.MNIST_TRAIN_MEAN, settings.MNIST_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 28, 28), 28          # For simplicity just repeat first channel
-        cfg.num_classes, cfg.num_samples = 10, 60_000
+        cfg.num_classes = 10
     elif args.dataset == 'cifar10':
         cfg.mean, cfg.std = settings.CIFAR10_TRAIN_MEAN, settings.CIFAR10_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 32, 32), 32
-        cfg.num_classes, cfg.num_samples = 10, 60_000
+        cfg.num_classes = 10
     elif args.dataset == 'cifar100':
         cfg.mean, cfg.std = settings.CIFAR100_TRAIN_MEAN, settings.CIFAR100_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 32, 32), 32
-        cfg.num_classes, cfg.num_samples = 100, 60_000
+        cfg.num_classes = 100
     else:
         raise ValueError(f'Dataset {args.dataset} is not supported')
 

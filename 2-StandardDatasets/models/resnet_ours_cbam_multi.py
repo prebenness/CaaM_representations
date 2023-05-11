@@ -265,7 +265,10 @@ class ResNet(nn.Module):
             if isinstance(x, list):
                 new_x = []
                 for x_ in x:
-                    x_ = F.avg_pool2d(x_, 4)
+                    if self.network_type == 'PCAM':
+                        x_ = F.avg_pool2d(x_, 7)
+                    else:
+                        x_ = F.avg_pool2d(x_, 4)
                     new_x.append(x_.view(x_.size(0), -1))
                 return new_x
             else:
@@ -288,7 +291,10 @@ class ResNet_Classifier(nn.Module):
 
 def ResidualNet(network_type, depth, num_classes, att_type, split_layer=4):
 
-    assert network_type in ["ImageNet", "CIFAR10", "CIFAR100", "MNIST"], "network type should be ImageNet or CIFAR10 / CIFAR100"
+    assert network_type in [
+        "ImageNet", "CIFAR10", "CIFAR100", "MNIST", "EMNIST_BALANCED", "FASHION_MNIST",
+        "COUNTRY211", "PCAM"
+    ], "network type should be ImageNet or CIFAR10 / CIFAR100"
     assert depth in [18, 34, 50, 101], 'network depth should be 18, 34, 50 or 101'
 
     if depth == 18:

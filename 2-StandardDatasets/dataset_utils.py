@@ -237,7 +237,7 @@ class ImageFolder_env(torch.utils.data.Dataset):
 def get_generic_dataloader(root, batch_size, train=True, num_workers=8, val_data='ImageNet'):
     if train:
         transform = transforms.Compose([
-            transforms.RandomResizedCrop(cfg.img_shape[-1]),
+            transforms.RandomResizedCrop((cfg.img_shape[1], cfg.img_shape[2])),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize(mean=cfg.mean, std=cfg.std)])
@@ -245,7 +245,7 @@ def get_generic_dataloader(root, batch_size, train=True, num_workers=8, val_data
     else:
         transform = transforms.Compose([
             transforms.Resize(cfg.load_size),
-            transforms.CenterCrop(cfg.img_shape[-1]),
+            transforms.CenterCrop((cfg.img_shape[1], cfg.img_shape[2])),
             transforms.ToTensor(),
             transforms.Normalize(mean=cfg.mean, std=cfg.std)])
 
@@ -275,49 +275,6 @@ def get_generic_dataloader(root, batch_size, train=True, num_workers=8, val_data
                                             pin_memory=True)
         
         return train_dataloader, val_dataloader
-
-""" def get_common_dataloader(name, conf, train=True):
-    if name == 'mnist':
-        image_size = 28
-        load_size = 28
-        #Dataset = torchvision.datasets.MNIST
-        Dataset = CaaMMNISTDataset
-    elif name == 'cifar10':
-        image_size = 32
-        load_size = 32
-        #Dataset = torchvision.datasets.CIFAR10
-        Dataset = CaaMCIFAR10Dataset
-    elif name == 'cifar100':
-        image_size = 32
-        load_size = 32
-        #Dataset = torchvision.datasets.CIFAR100
-        Dataset = CaaMMNISTDataset
-    else:
-        raise ValueError(f'Dataset {name} not supported')
-
-    if train:
-        transform = transforms.Compose([
-            transforms.RandomResizedCrop(cfg.img_shape[-1]),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=cfg.mean, std=cfg.std)])
-
-    else:
-        transform = transforms.Compose([
-            transforms.Resize(cfg.load_size),
-            transforms.CenterCrop(cfg.img_shape[-1]),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=cfg.mean, std=cfg.std)])
-
-    dataset = Dataset(root=settings.DATA_DIR, train=train, transform=transform, download=True)
-
-    dataloader = torch.utils.data.DataLoader(
-        dataset=dataset, batch_size=conf['training_opt']['batch_size'],
-        shuffle=train, num_workers=conf['training_opt']['num_workers'],
-        pin_memory=True
-    )
-
-    return dataloader """
 
 
 def get_imagenet_dataloader_env(config, root, batch_size, train=True, num_workers=8,

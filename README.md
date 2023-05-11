@@ -29,7 +29,7 @@ If you find our codes helpful, please cite our paper:
 
 3) Please remember to change the data path in the config file.
 
-### 2.5 MNIST / CIFAR
+### 1.5 MNIST / CIFAR
 1) run data_parser.py for all three datasets
 2) train with relevant config file
 3) run representations.py with path to trained model (ensure n_env and other settings match between training and script)

@@ -111,15 +111,33 @@ if __name__ == '__main__':
     if config['dataset'] == 'MNIST':
         cfg.mean, cfg.std = settings.MNIST_TRAIN_MEAN, settings.MNIST_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 28, 28), 28          # For simplicity just repeat first channel
-        cfg.num_classes, cfg.num_samples = 10, 60_000
+        cfg.num_classes = 10
+    elif config['dataset'] == 'EMNIST_BALANCED':
+        cfg.mean, cfg.std = settings.EMNIST_BALANCED_TRAIN_MEAN, settings.EMNIST_BALANCED_TRAIN_STD
+        cfg.img_shape, cfg.load_size = (3, 28, 28), 28
+        cfg.num_classes = 47
+    elif config['dataset'] == 'FASHION_MNIST':
+        cfg.mean, cfg.std = settings.FASHION_MNIST_TRAIN_MEAN, settings.FASHION_MNIST_TRAIN_STD
+        cfg.img_shape, cfg.load_size = (3, 28, 28), 28
+        cfg.num_classes = 10
     elif config['dataset'] == 'CIFAR10':
         cfg.mean, cfg.std = settings.CIFAR10_TRAIN_MEAN, settings.CIFAR10_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 32, 32), 32
-        cfg.num_classes, cfg.num_samples = 10, 60_000
+        cfg.num_classes = 10
     elif config['dataset'] == 'CIFAR100':
         cfg.mean, cfg.std = settings.CIFAR100_TRAIN_MEAN, settings.CIFAR100_TRAIN_STD
         cfg.img_shape, cfg.load_size = (3, 32, 32), 32
-        cfg.num_classes, cfg.num_samples = 100, 60_000
+        cfg.num_classes = 100
+    elif config['dataset'] == 'COUNTRY211':
+        cfg.mean, cfg.std = settings.COUNTRY211_TRAIN_MEAN, settings.COUNTRY211_TRAIN_STD
+        cfg.img_shape, cfg.load_size = (3, 224, 224), 224
+        cfg.num_classes = 100
+        # Use same network layout as imagenet
+        cfg.network_type = 'ImageNet'
+    elif config['dataset'] == 'PCAM':
+        cfg.mean, cfg.std = settings.PCAM_TRAIN_MEAN, settings.PCAM_TRAIN_STD
+        cfg.img_shape, cfg.load_size = (3, 96, 96), 96
+        cfg.num_classes = 2
     else:
         raise ValueError(f'Dataset {config["dataset"]} is not supported')
 
@@ -185,7 +203,7 @@ if __name__ == '__main__':
             ## Make random pre-split
             #pre_split = np.load('misc/unbalance_bagnet18_imagenet9_presplit.npy')
             #pre_split = torch.from_numpy(pre_split).cuda()
-            pre_split = torch.randn((cfg.num_samples, cfg.num_classes))
+            pre_split = torch.randn((len(pre_train_loader.dataset), cfg.num_classes))
             pre_train_loader.dataset.soft_split = torch.nn.Parameter(torch.randn_like(pre_split))
             pre_split_softmax = F.softmax(pre_split, dim=-1)
 

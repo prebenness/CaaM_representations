@@ -1,0 +1,37 @@
+exp_name: resnet18_ours_mnist
+net: resnet18_ours_cbam_multi
+dataset: PCAM
+train_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/pcam_dumb/train
+val_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/pcam_dumb/val
+test_root: /home/prebenness/workspace/CaaM_representations/2-StandardDatasets/data/pcam_dumb/test
+training_opt:
+  seed: 0
+  classes: 2
+  batch_size: 128
+  val_batch_size: 128
+  lr: 0.1
+  warm: 2
+  epoch: 120
+  milestones: [50, 80, 100]
+  save_epoch: 20
+  print_batch: 10
+  num_workers: 1
+variance_opt:
+  #balance_factor: 0.02
+  env: True
+  mode: 'ours'
+  erm_flag: True
+  sp_flag: False
+  n_env: 2
+  #env_type: 'random'
+  env_type: 'auto-iter'
+  split_renew: 40
+  split_renew_iters: 10
+  from_scratch: False
+  #ref_model: resnet18
+  #ref_model_path: /disk2/wangtan/code/causal_invariant_attention/multi-classification/imagenet/checkpoint/resnet18/baseline_resnet18_imagenet9_lr0.05_class9/resnet18-100-regular.pth
+  penalty_weight: 5e4
+  penalty_anneal_iters: 0
+  #2 blocks, 4 layers
+  split_layer: 3
+resume: False
